@@ -1,16 +1,36 @@
+// src/theme.js
+
 import { createTheme } from '@mui/material/styles';
 
 const theme = createTheme({
   palette: {
     primary: {
-      main: '#1976d2', // Customize with your primary color
+      main: '#808080',
     },
-    secondary: {
-      main: '#dc004e', // Customize with your secondary color
+    text: {
+      primary: '#000000',
+    },
+    background: {
+      default: '#f5f5f5',
     },
   },
   typography: {
-    // Customize typography if needed
+    fontFamily: 'Amatic, sans-serif',
+    h4: {
+      fontWeight: 700,
+    },
+    body1: {
+      fontWeight: 400,
+    },
+  },
+  components: {
+    MuiTypography: {
+      styleOverrides: {
+        root: {
+          fontFamily: 'Amatic, sans-serif',
+        },
+      },
+    },
   },
 });
 

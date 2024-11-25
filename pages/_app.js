@@ -6,9 +6,9 @@ import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import theme from '../src/theme';
 
-export default function MyApp(props) {
-  const { Component, pageProps } = props;
+import '../styles/globals.css'; // Import the global CSS file
 
+export default function MyApp({ Component, pageProps }) {
   return (
     <React.Fragment>
       <Head>
@@ -16,7 +16,6 @@ export default function MyApp(props) {
         <meta name="viewport" content="initial-scale=1, width=device-width" />
       </Head>
       <ThemeProvider theme={theme}>
-        {/* CssBaseline kickstarts an elegant, consistent baseline to build upon */}
         <CssBaseline />
         <Component {...pageProps} />
       </ThemeProvider>

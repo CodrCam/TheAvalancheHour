@@ -1,11 +1,27 @@
+// pages/episodes/index.js
+
 import * as React from 'react';
-import { Container, Typography, Grid, Card, CardContent, CardMedia, TextField, CircularProgress } from '@mui/material';
+import {
+  Container,
+  Typography,
+  Grid,
+  Card,
+  CardContent,
+  CardMedia,
+  TextField,
+  MenuItem,
+  Select,
+  FormControl,
+  InputLabel,
+} from '@mui/material';
 import Navbar from '../../components/Navbar';
 
 export default function Episodes() {
   const [searchQuery, setSearchQuery] = React.useState('');
   const [episodes, setEpisodes] = React.useState([]);
   const [filteredEpisodes, setFilteredEpisodes] = React.useState([]);
+  const [seasons, setSeasons] = React.useState([]);
+  const [selectedSeason, setSelectedSeason] = React.useState('');
   const [loading, setLoading] = React.useState(true);
 
   React.useEffect(() => {
@@ -15,8 +31,12 @@ export default function Episodes() {
         if (!response.ok) throw new Error('Failed to fetch episodes');
 
         const data = await response.json();
+        const groupedSeasons = groupEpisodesBySeason(data);
+
         setEpisodes(data);
-        setFilteredEpisodes(data);
+        setSeasons(groupedSeasons);
+        setSelectedSeason(Object.keys(groupedSeasons)[0]); // Default to the first season
+        setFilteredEpisodes(groupedSeasons[Object.keys(groupedSeasons)[0]]);
         setLoading(false);
       } catch (error) {
         console.error('Error fetching episodes:', error);
@@ -27,25 +47,55 @@ export default function Episodes() {
     fetchEpisodes();
   }, []);
 
+  const groupEpisodesBySeason = (episodes) => {
+    const grouped = {};
+
+    episodes.forEach((episode) => {
+      const releaseYear = new Date(episode.release_date).getFullYear();
+      const releaseMonth = new Date(episode.release_date).getMonth();
+
+      // Define the season break as "new season starts every July (month 6)"
+      const seasonKey = releaseMonth >= 6 ? `${releaseYear}` : `${releaseYear - 1}`;
+
+      if (!grouped[seasonKey]) {
+        grouped[seasonKey] = [];
+      }
+
+      grouped[seasonKey].push(episode);
+    });
+
+    return grouped;
+  };
+
   const handleSearch = (event) => {
     const query = event.target.value.toLowerCase();
     setSearchQuery(query);
-    setFilteredEpisodes(
-      episodes.filter(
-        (episode) =>
-          episode.name.toLowerCase().includes(query) ||
-          (episode.description && episode.description.toLowerCase().includes(query))
-      )
-    );
+
+    if (query) {
+      // Search across all episodes from all seasons
+      const allEpisodes = Object.values(seasons).flat();
+      setFilteredEpisodes(
+        allEpisodes.filter(
+          (episode) =>
+            episode.name.toLowerCase().includes(query) ||
+            (episode.description && episode.description.toLowerCase().includes(query))
+        )
+      );
+    } else {
+      // If query is empty, revert to the selected season
+      setFilteredEpisodes(seasons[selectedSeason] || []);
+    }
   };
 
-  if (loading) {
-    return (
-      <Container maxWidth="lg" sx={{ textAlign: 'center', mt: 4 }}>
-        <CircularProgress />
-      </Container>
-    );
-  }
+  const handleSeasonChange = (event) => {
+    const season = event.target.value;
+    setSelectedSeason(season);
+
+    // Reset filtered episodes to the newly selected season if there's no search query
+    if (!searchQuery) {
+      setFilteredEpisodes(seasons[season] || []);
+    }
+  };
 
   return (
     <React.Fragment>
@@ -54,6 +104,16 @@ export default function Episodes() {
         <Typography variant="h4" component="h1" gutterBottom sx={{ mt: 4 }}>
           Episodes
         </Typography>
+        <FormControl fullWidth sx={{ mb: 4 }}>
+          <InputLabel>Season</InputLabel>
+          <Select value={selectedSeason} onChange={handleSeasonChange} label="Season">
+            {Object.keys(seasons).map((season) => (
+              <MenuItem key={season} value={season}>
+                Season {season}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
         <TextField
           fullWidth
           label="Search by title or description"
@@ -74,7 +134,14 @@ export default function Episodes() {
                 />
                 <CardContent>
                   <Typography gutterBottom variant="h5" component="div">
-                    {episode.name}
+                    <a
+                      href={episode.external_urls.spotify}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{ textDecoration: 'none', color: 'inherit' }}
+                    >
+                      {episode.name}
+                    </a>
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
                     {episode.description || 'No description available'}

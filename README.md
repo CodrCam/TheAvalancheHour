@@ -1,5 +1,3 @@
-Here’s the full README.md in Markdown format, ready for copy-pasting:
-
 # The Avalanche Hour Podcast Website
 
 Welcome to the official repository for **The Avalanche Hour Podcast Website**. This project is designed to provide an engaging platform for sharing episodes, organizing them into seasons, and offering a seamless user experience with dynamic search and Spotify API integration.

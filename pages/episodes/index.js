@@ -1,16 +1,31 @@
-// pages/episodes/index.js
-
 import * as React from 'react';
-import { Container, Typography, Grid, Card, CardContent, CardMedia, TextField } from '@mui/material';
+import { Container, Typography, Grid, Card, CardContent, CardMedia, TextField, CircularProgress } from '@mui/material';
 import Navbar from '../../components/Navbar';
-
-const episodes = [
-  // Array of all episodes with id, title, description, date, image, tags, and guest
-];
 
 export default function Episodes() {
   const [searchQuery, setSearchQuery] = React.useState('');
-  const [filteredEpisodes, setFilteredEpisodes] = React.useState(episodes);
+  const [episodes, setEpisodes] = React.useState([]);
+  const [filteredEpisodes, setFilteredEpisodes] = React.useState([]);
+  const [loading, setLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    async function fetchEpisodes() {
+      try {
+        const response = await fetch('/api/spotify');
+        if (!response.ok) throw new Error('Failed to fetch episodes');
+
+        const data = await response.json();
+        setEpisodes(data);
+        setFilteredEpisodes(data);
+        setLoading(false);
+      } catch (error) {
+        console.error('Error fetching episodes:', error);
+        setLoading(false);
+      }
+    }
+
+    fetchEpisodes();
+  }, []);
 
   const handleSearch = (event) => {
     const query = event.target.value.toLowerCase();
@@ -18,12 +33,19 @@ export default function Episodes() {
     setFilteredEpisodes(
       episodes.filter(
         (episode) =>
-          episode.title.toLowerCase().includes(query) ||
-          episode.tags.some((tag) => tag.toLowerCase().includes(query)) ||
-          episode.guest.toLowerCase().includes(query)
+          episode.name.toLowerCase().includes(query) ||
+          (episode.description && episode.description.toLowerCase().includes(query))
       )
     );
   };
+
+  if (loading) {
+    return (
+      <Container maxWidth="lg" sx={{ textAlign: 'center', mt: 4 }}>
+        <CircularProgress />
+      </Container>
+    );
+  }
 
   return (
     <React.Fragment>
@@ -34,7 +56,7 @@ export default function Episodes() {
         </Typography>
         <TextField
           fullWidth
-          label="Search by title, tags, or guest"
+          label="Search by title or description"
           variant="outlined"
           value={searchQuery}
           onChange={handleSearch}
@@ -47,21 +69,18 @@ export default function Episodes() {
                 <CardMedia
                   component="img"
                   height="140"
-                  image={episode.image}
-                  alt={episode.title}
+                  image={episode.images[0]?.url || '/images/default.jpg'} // Fallback to default image
+                  alt={episode.name}
                 />
                 <CardContent>
                   <Typography gutterBottom variant="h5" component="div">
-                    {episode.title}
+                    {episode.name}
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
-                    {episode.description}
+                    {episode.description || 'No description available'}
                   </Typography>
                   <Typography variant="caption" display="block" gutterBottom>
-                    Guest: {episode.guest}
-                  </Typography>
-                  <Typography variant="caption" display="block" gutterBottom>
-                    Tags: {episode.tags.join(', ')}
+                    Release Date: {new Date(episode.release_date).toLocaleDateString()}
                   </Typography>
                 </CardContent>
               </Card>

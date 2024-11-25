@@ -1,22 +1,43 @@
 // pages/index.js
 
-import React from 'react';
-import { Container, Typography, Grid, Box } from '@mui/material';
+import React, { useEffect, useState } from 'react';
+import { Container, Typography, Grid, Box, CircularProgress } from '@mui/material';
 import Navbar from '../components/Navbar';
 import ParallaxSection from '../components/ParallaxSection';
 import EpisodeCard from '../components/EpisodeCard';
 import SponsorGrid from '../components/SponsorGrid';
 
-const episodes = [
-  { id: 1, title: 'Episode 1', image: '/images/episode1.jpg', description: 'Description 1' },
-  { id: 2, title: 'Episode 2', image: '/images/episode2.jpg', description: 'Description 2' },
-  { id: 3, title: 'Episode 3', image: '/images/episode3.jpg', description: 'Description 3' },
-];
-
 const topSectionHeight = 350; // Height of the tagline section
 const separatorSectionHeight = 300; // Height of each parallax separator section
 
 export default function Home() {
+  const [episodes, setEpisodes] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchEpisodes() {
+      try {
+        const response = await fetch('/api/spotify'); // Fetch data from your API
+        if (!response.ok) throw new Error('Failed to fetch episodes');
+
+        const data = await response.json();
+
+        // Sort episodes by release date (descending) and pick the latest three
+        const latestEpisodes = data
+          .sort((a, b) => new Date(b.release_date) - new Date(a.release_date))
+          .slice(0, 3);
+
+        setEpisodes(latestEpisodes);
+        setLoading(false);
+      } catch (error) {
+        console.error('Error fetching episodes:', error);
+        setLoading(false);
+      }
+    }
+
+    fetchEpisodes();
+  }, []);
+
   return (
     <>
       <Navbar />
@@ -50,7 +71,7 @@ export default function Home() {
               fontSize: { xs: '1.5rem', md: '2.5rem' },
               fontFamily: 'Amatic, sans-serif',
               fontWeight: 'bold',
-              color: 'text.primary', // Uses black text color from theme
+              color: 'text.primary',
             }}
           >
             Creating a stronger community through sharing stories, knowledge, and news amongst
@@ -75,13 +96,19 @@ export default function Home() {
           >
             Latest Episodes
           </Typography>
-          <Grid container spacing={4}>
-            {episodes.map((episode) => (
-              <Grid item xs={12} sm={6} md={4} key={episode.id}>
-                <EpisodeCard episode={episode} />
-              </Grid>
-            ))}
-          </Grid>
+          {loading ? (
+            <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+              <CircularProgress />
+            </Box>
+          ) : (
+            <Grid container spacing={4}>
+              {episodes.map((episode) => (
+                <Grid item xs={12} sm={6} md={4} key={episode.id}>
+                  <EpisodeCard episode={episode} />
+                </Grid>
+              ))}
+            </Grid>
+          )}
         </Container>
       </Box>
 
@@ -92,7 +119,7 @@ export default function Home() {
         strength={500}
         bgImageStyle={{
           objectFit: 'cover',
-          objectPosition: `center`, // Adjust positioning for visual alignment
+          objectPosition: `center`,
         }}
       />
 

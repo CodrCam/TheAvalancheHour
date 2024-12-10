@@ -94,16 +94,3 @@ Check out the live version of the website: The Avalanche Hour Podcast.
 	•	Add user accounts for saving favorite episodes.
 	•	Implement advanced analytics for tracking user engagement.
 	•	Enhance SEO for better discoverability of episodes.
-
----
-
-### Instructions for Adding the README
-1. Copy and paste the above text into a file named `README.md` in the root of your project.
-2. Commit and push the file to your repository:
-
-   ```bash
-   git add README.md
-   git commit -m "Add README.md for The Avalanche Hour Podcast Website"
-   git push origin main
-
-Let me know if you need any adjustments or additional content for the README! 🚀
